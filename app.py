@@ -106,7 +106,8 @@ camera_html = """
 
 <head>
 
-<meta name="viewport"
+<meta
+name="viewport"
 content="width=device-width, initial-scale=1">
 
 <style>
@@ -251,14 +252,14 @@ st.subheader("🕹️ THRUSTER CONTROL")
 
 
 joystick_html = f"""
-
 <!DOCTYPE html>
 
 <html>
 
 <head>
 
-<meta name="viewport"
+<meta
+name="viewport"
 content="width=device-width, initial-scale=1">
 
 <style>
@@ -281,6 +282,7 @@ body {{
 
 }}
 
+
 #base {{
 
     width: 240px;
@@ -299,6 +301,7 @@ body {{
 
 }}
 
+
 #stick {{
 
     width: 80px;
@@ -314,6 +317,9 @@ body {{
     left: 80px;
 
     top: 80px;
+
+    box-shadow:
+        0 0 20px rgba(75,131,255,0.5);
 
 }}
 
@@ -335,7 +341,12 @@ body {{
 <script>
 
 
-const WEMOS = "{WEMOS_IP}";
+// ============================================================
+// WEMOS
+// ============================================================
+
+const WEMOS =
+    "{WEMOS_IP}";
 
 
 const base =
@@ -357,22 +368,26 @@ let active = false;
 // SEND MOTOR COMMAND
 // ============================================================
 
-function sendMotors(left, right) {
+function sendMotors(left, right) {{
 
     fetch(
-        "http://" + WEMOS
-        + "/motors?left="
-        + Math.round(left)
-        + "&right="
-        + Math.round(right),
-        {
-            mode: "cors"
-        }
-    ).catch(
-        () => {{}}
-    );
+        "http://" +
+        WEMOS +
+        "/motors?left=" +
+        Math.round(left) +
+        "&right=" +
+        Math.round(right)
+    )
+    .catch(function(error) {{
 
-}
+        console.log(
+            "Wemos connection error:",
+            error
+        );
+
+    }});
+
+}}
 
 
 // ============================================================
@@ -383,66 +398,84 @@ function control(x, y) {{
 
     const distance =
         Math.sqrt(
-            x * x + y * y
+            x * x +
+            y * y
         );
 
+
+    // Keep stick inside circle
 
     if (
         distance > maxDistance
     ) {{
 
         x =
-            x / distance
-            * maxDistance;
+            x /
+            distance *
+            maxDistance;
 
         y =
-            y / distance
-            * maxDistance;
+            y /
+            distance *
+            maxDistance;
 
     }}
 
 
+    // Move visual stick
+
     stick.style.left =
-        (center + x - 40)
-        + "px";
+        (
+            center +
+            x -
+            40
+        ) + "px";
 
 
     stick.style.top =
-        (center + y - 40)
-        + "px";
+        (
+            center +
+            y -
+            40
+        ) + "px";
 
 
-    // ========================================
+    // ========================================================
     // THROTTLE
-    // ========================================
+    // ========================================================
+
+    // Up = positive throttle
+    // Down = negative throttle
 
     let throttle =
         -y / maxDistance;
 
 
-    // ========================================
+    // ========================================================
     // STEERING
-    // ========================================
+    // ========================================================
 
     let steering =
         x / maxDistance;
 
 
-    // ========================================
+    // ========================================================
     // DIFFERENTIAL MIXING
-    // ========================================
+    // ========================================================
 
     let left =
-        throttle + steering;
+        throttle +
+        steering;
 
 
     let right =
-        throttle - steering;
+        throttle -
+        steering;
 
 
-    // ========================================
+    // ========================================================
     // NORMALIZE
-    // ========================================
+    // ========================================================
 
     const maximum =
         Math.max(
@@ -453,24 +486,32 @@ function control(x, y) {{
 
 
     left =
-        left / maximum;
+        left /
+        maximum;
 
 
     right =
-        right / maximum;
+        right /
+        maximum;
 
 
-    // ========================================
+    // ========================================================
     // SPEED LIMIT
-    // ========================================
+    // ========================================================
 
     left =
-        left * {speed};
+        left *
+        {speed};
 
 
     right =
-        right * {speed};
+        right *
+        {speed};
 
+
+    // ========================================================
+    // SEND
+    // ========================================================
 
     sendMotors(
         left,
@@ -481,13 +522,15 @@ function control(x, y) {{
 
 
 // ============================================================
-// RELEASE
+// RELEASE JOYSTICK
 // ============================================================
 
 function release() {{
 
     active = false;
 
+
+    // Return stick to center
 
     stick.style.left =
         "80px";
@@ -496,6 +539,8 @@ function release() {{
     stick.style.top =
         "80px";
 
+
+    // STOP MOTORS
 
     sendMotors(
         0,
@@ -506,14 +551,16 @@ function release() {{
 
 
 // ============================================================
-// TOUCH / MOUSE
+// POINTER DOWN
 // ============================================================
 
 base.addEventListener(
     "pointerdown",
+
     function(event) {{
 
         active = true;
+
 
         base.setPointerCapture(
             event.pointerId
@@ -526,26 +573,35 @@ base.addEventListener(
 
         control(
 
-            event.clientX
-            - rect.left
-            - center,
+            event.clientX -
+            rect.left -
+            center,
 
-            event.clientY
-            - rect.top
-            - center
+            event.clientY -
+            rect.top -
+            center
 
         );
 
     }}
+
 );
 
 
+// ============================================================
+// POINTER MOVE
+// ============================================================
+
 base.addEventListener(
     "pointermove",
+
     function(event) {{
 
-        if (!active)
+        if (!active) {
+
             return;
+
+        }
 
 
         const rect =
@@ -554,29 +610,50 @@ base.addEventListener(
 
         control(
 
-            event.clientX
-            - rect.left
-            - center,
+            event.clientX -
+            rect.left -
+            center,
 
-            event.clientY
-            - rect.top
-            - center
+            event.clientY -
+            rect.top -
+            center
 
         );
 
     }}
+
 );
 
+
+// ============================================================
+// POINTER UP
+// ============================================================
 
 base.addEventListener(
     "pointerup",
-    release
+
+    function() {{
+
+        release();
+
+    }}
+
 );
 
 
+// ============================================================
+// POINTER CANCEL
+// ============================================================
+
 base.addEventListener(
     "pointercancel",
-    release
+
+    function() {{
+
+        release();
+
+    }}
+
 );
 
 
@@ -586,7 +663,6 @@ base.addEventListener(
 </body>
 
 </html>
-
 """
 
 
@@ -601,7 +677,6 @@ st.iframe(
 # ============================================================
 
 st.divider()
-
 
 if st.button(
     "🛑 EMERGENCY STOP",
@@ -642,6 +717,7 @@ if st.button(
             timeout=1
         )
 
+
         if response.status_code == 200:
 
             st.success(
@@ -657,6 +733,7 @@ if st.button(
             st.error(
                 "Wemos returned an error."
             )
+
 
     except requests.RequestException as error:
 
