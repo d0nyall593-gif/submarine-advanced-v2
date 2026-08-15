@@ -3,7 +3,7 @@ import requests
 
 
 # ============================================================
-# WEMOS
+# WEMOS CONFIG
 # ============================================================
 
 WEMOS_IP = "192.168.0.9"
@@ -100,9 +100,7 @@ except requests.RequestException:
 # REAR CAMERA
 # ============================================================
 
-st.subheader(
-    "📹 REAR CAMERA"
-)
+st.subheader("📹 REAR CAMERA")
 
 
 camera_html = """
@@ -119,43 +117,26 @@ content="width=device-width, initial-scale=1">
 <style>
 
 body {
-
     margin: 0;
-
     background: #080b10;
-
     color: white;
-
     text-align: center;
-
     font-family: Arial;
-
 }
 
 video {
-
     width: 100%;
-
     max-width: 650px;
-
     border-radius: 15px;
-
     background: black;
-
 }
 
 button {
-
     padding: 14px 22px;
-
     margin: 10px;
-
     border: none;
-
     border-radius: 12px;
-
     font-size: 17px;
-
 }
 
 </style>
@@ -164,23 +145,17 @@ button {
 
 <body>
 
-
 <video
 id="camera"
 autoplay
 playsinline>
 </video>
 
-
 <br>
 
-
 <button onclick="startCamera()">
-
 📹 START REAR CAMERA
-
 </button>
-
 
 <script>
 
@@ -189,21 +164,17 @@ async function startCamera() {
     try {
 
         const stream =
-            await navigator.mediaDevices
-            .getUserMedia({
+            await navigator.mediaDevices.getUserMedia({
 
                 video: {
-
                     facingMode: {
                         ideal: "environment"
                     }
-
                 },
 
                 audio: false
 
             });
-
 
         document.getElementById(
             "camera"
@@ -224,7 +195,6 @@ async function startCamera() {
 
 </script>
 
-
 </body>
 
 </html>
@@ -241,9 +211,7 @@ st.iframe(
 # SPEED
 # ============================================================
 
-st.subheader(
-    "🎚️ MOTOR SPEED"
-)
+st.subheader("🎚️ MOTOR SPEED")
 
 
 speed = st.slider(
@@ -256,11 +224,7 @@ speed = st.slider(
 
 
 st.markdown(
-    f"""
-    <h2>
-    {speed}%
-    </h2>
-    """,
+    f"<h2>{speed}%</h2>",
     unsafe_allow_html=True
 )
 
@@ -269,12 +233,14 @@ st.markdown(
 # JOYSTICK
 # ============================================================
 
-st.subheader(
-    "🕹️ THRUSTER CONTROL"
-)
+st.subheader("🕹️ THRUSTER CONTROL")
 
 
-joystick_html = f"""
+# IMPORTANT:
+# This is NOT an f-string.
+# Therefore JavaScript { } do not need escaping.
+
+joystick_html = """
 <!DOCTYPE html>
 
 <html>
@@ -285,10 +251,9 @@ joystick_html = f"""
 name="viewport"
 content="width=device-width, initial-scale=1">
 
-
 <style>
 
-body {{
+body {
 
     margin: 0;
 
@@ -306,10 +271,9 @@ body {{
 
     user-select: none;
 
-}}
+}
 
-
-#base {{
+#base {
 
     width: 250px;
 
@@ -325,10 +289,9 @@ body {{
 
     touch-action: none;
 
-}}
+}
 
-
-#stick {{
+#stick {
 
     width: 80px;
 
@@ -348,7 +311,7 @@ body {{
         0 0 20px
         rgba(75,131,255,0.5);
 
-}}
+}
 
 </style>
 
@@ -372,24 +335,17 @@ body {{
 // CONFIG
 // ============================================================
 
-const WEMOS =
-    "{WEMOS_IP}";
+const WEMOS = "__WEMOS_IP__";
 
-
-const SPEED =
-    {speed};
+const SPEED = __SPEED__;
 
 
 const base =
-    document.getElementById(
-        "base"
-    );
+    document.getElementById("base");
 
 
 const stick =
-    document.getElementById(
-        "stick"
-    );
+    document.getElementById("stick");
 
 
 const CENTER = 125;
@@ -397,14 +353,7 @@ const CENTER = 125;
 const MAX_DISTANCE = 85;
 
 
-// IMPORTANT:
-//
-// Commands are resent every 100 ms
-// while the joystick is held.
-//
-// This prevents the Wemos
-// safety timer from stopping
-// a stationary joystick.
+// Send commands every 100 ms
 
 const SEND_INTERVAL = 100;
 
@@ -422,7 +371,7 @@ let sendTimer = null;
 // SEND MOTOR COMMAND
 // ============================================================
 
-function sendMotors(left, right) {{
+function sendMotors(left, right) {
 
     const url =
         "http://" +
@@ -435,71 +384,70 @@ function sendMotors(left, right) {{
 
     fetch(url)
 
-        .then(function(response) {{
+        .then(function(response) {
 
-            if (!response.ok) {{
+            if (!response.ok) {
 
                 console.log(
                     "Wemos error:",
                     response.status
                 );
 
-            }}
+            }
 
-        }})
+        })
 
-        .catch(function(error) {{
+        .catch(function(error) {
 
             console.log(
                 "Wemos connection error:",
                 error
             );
 
-        }});
+        });
 
-}}
+}
 
 
 // ============================================================
 // REPEATED COMMAND SENDER
 // ============================================================
 
-function startSending() {{
+function startSending() {
 
-    if (sendTimer !== null) {{
+    if (sendTimer !== null) {
 
         return;
 
-    }}
+    }
 
 
-    sendTimer =
-        setInterval(
-            function() {{
+    sendTimer = setInterval(
+        function() {
 
-                if (active) {{
+            if (active) {
 
-                    sendMotors(
-                        lastLeft,
-                        lastRight
-                    );
+                sendMotors(
+                    lastLeft,
+                    lastRight
+                );
 
-                }
+            }
 
-            }},
-            SEND_INTERVAL
-        );
+        },
+        SEND_INTERVAL
+    );
 
-}}
+}
 
 
 // ============================================================
 // STOP REPEATED SENDING
 // ============================================================
 
-function stopSending() {{
+function stopSending() {
 
-    if (sendTimer !== null) {{
+    if (sendTimer !== null) {
 
         clearInterval(
             sendTimer
@@ -507,16 +455,16 @@ function stopSending() {{
 
         sendTimer = null;
 
-    }}
+    }
 
-}}
+}
 
 
 // ============================================================
 // STOP MOTORS
 // ============================================================
 
-function stopMotors() {{
+function stopMotors() {
 
     lastLeft = 0;
 
@@ -529,23 +477,23 @@ function stopMotors() {{
         "/stop"
     )
 
-    .catch(function(error) {{
+    .catch(function(error) {
 
         console.log(
             "Stop error:",
             error
         );
 
-    }});
+    });
 
-}}
+}
 
 
 // ============================================================
 // JOYSTICK CONTROL
 // ============================================================
 
-function control(x, y) {{
+function control(x, y) {
 
     const distance =
         Math.sqrt(
@@ -554,25 +502,23 @@ function control(x, y) {{
         );
 
 
-    // Keep joystick inside circle
+    // Keep stick inside circle
 
     if (
-        distance >
-        MAX_DISTANCE
-    ) {{
+        distance > MAX_DISTANCE
+    ) {
 
         x =
             x /
             distance *
             MAX_DISTANCE;
 
-
         y =
             y /
             distance *
             MAX_DISTANCE;
 
-    }}
+    }
 
 
     // ========================================================
@@ -584,8 +530,7 @@ function control(x, y) {{
             CENTER +
             x -
             40
-        ) +
-        "px";
+        ) + "px";
 
 
     stick.style.top =
@@ -593,8 +538,7 @@ function control(x, y) {{
             CENTER +
             y -
             40
-        ) +
-        "px";
+        ) + "px";
 
 
     // ========================================================
@@ -652,7 +596,7 @@ function control(x, y) {{
 
 
     // ========================================================
-    // APPLY SPEED SLIDER
+    // SPEED LIMIT
     // ========================================================
 
     left =
@@ -681,17 +625,16 @@ function control(x, y) {{
         right
     );
 
-}}
+}
 
 
 // ============================================================
 // RELEASE
 // ============================================================
 
-function release() {{
+function release() {
 
     active = false;
-
 
     stopSending();
 
@@ -706,7 +649,7 @@ function release() {{
 
     stopMotors();
 
-}}
+}
 
 
 // ============================================================
@@ -716,7 +659,7 @@ function release() {{
 base.addEventListener(
     "pointerdown",
 
-    function(event) {{
+    function(event) {
 
         active = true;
 
@@ -745,7 +688,7 @@ base.addEventListener(
 
         startSending();
 
-    }}
+    }
 
 );
 
@@ -757,13 +700,13 @@ base.addEventListener(
 base.addEventListener(
     "pointermove",
 
-    function(event) {{
+    function(event) {
 
-        if (!active) {{
+        if (!active) {
 
             return;
 
-        }}
+        }
 
 
         const rect =
@@ -782,7 +725,7 @@ base.addEventListener(
 
         );
 
-    }}
+    }
 
 );
 
@@ -794,11 +737,11 @@ base.addEventListener(
 base.addEventListener(
     "pointerup",
 
-    function() {{
+    function() {
 
         release();
 
-    }}
+    }
 
 );
 
@@ -810,11 +753,11 @@ base.addEventListener(
 base.addEventListener(
     "pointercancel",
 
-    function() {{
+    function() {
 
         release();
 
-    }}
+    }
 
 );
 
@@ -826,15 +769,15 @@ base.addEventListener(
 window.addEventListener(
     "blur",
 
-    function() {{
+    function() {
 
-        if (active) {{
+        if (active) {
 
             release();
 
-        }}
+        }
 
-    }}
+    }
 
 );
 
@@ -846,6 +789,21 @@ window.addEventListener(
 
 </html>
 """
+
+
+# ============================================================
+# INSERT PYTHON VALUES
+# ============================================================
+
+joystick_html = joystick_html.replace(
+    "__WEMOS_IP__",
+    WEMOS_IP
+)
+
+joystick_html = joystick_html.replace(
+    "__SPEED__",
+    str(speed)
+)
 
 
 st.iframe(
@@ -907,7 +865,6 @@ if st.button(
             st.success(
                 "🟢 WEMOS ONLINE!"
             )
-
 
             st.code(
                 response.text
