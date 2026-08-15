@@ -2,14 +2,14 @@ import streamlit as st
 
 
 # ============================================================
-# WEMOS
+# WEMOS CONFIG
 # ============================================================
 
 WEMOS_IP = "192.168.0.9"
 
 
 # ============================================================
-# PAGE
+# PAGE CONFIG
 # ============================================================
 
 st.set_page_config(
@@ -46,7 +46,9 @@ st.markdown(
 # TITLE
 # ============================================================
 
-st.title("⚓ SUBMARINE V2")
+st.title(
+    "⚓ SUBMARINE V2"
+)
 
 st.markdown(
     """
@@ -62,7 +64,9 @@ st.markdown(
 # CAMERA
 # ============================================================
 
-st.subheader("📹 REAR CAMERA")
+st.subheader(
+    "📹 REAR CAMERA"
+)
 
 
 camera_html = """
@@ -79,33 +83,52 @@ content="width=device-width, initial-scale=1">
 <style>
 
 body {
+
     margin:0;
+
     background:#080b10;
+
     text-align:center;
+
     font-family:Arial;
+
 }
 
 video {
+
     width:100%;
+
     max-width:650px;
+
     border-radius:15px;
+
     background:black;
+
 }
 
 button {
+
     padding:14px 22px;
+
     margin:10px;
+
     border:none;
+
     border-radius:12px;
+
     font-size:17px;
+
     font-weight:bold;
+
 }
 
 </style>
 
 </head>
 
+
 <body>
+
 
 <video
 id="camera"
@@ -113,11 +136,16 @@ autoplay
 playsinline>
 </video>
 
+
 <br>
 
+
 <button onclick="startCamera()">
+
 📹 START REAR CAMERA
+
 </button>
+
 
 <script>
 
@@ -130,10 +158,14 @@ async function startCamera() {
             .mediaDevices
             .getUserMedia({
 
-                video:{
-                    facingMode:{
+                video: {
+
+                    facingMode: {
+
                         ideal:"environment"
+
                     }
+
                 },
 
                 audio:false
@@ -144,6 +176,7 @@ async function startCamera() {
         document.getElementById(
             "camera"
         ).srcObject = stream;
+
 
     }
 
@@ -159,6 +192,7 @@ async function startCamera() {
 }
 
 </script>
+
 
 </body>
 
@@ -176,7 +210,9 @@ st.iframe(
 # SPEED
 # ============================================================
 
-st.subheader("🎚️ MASTER SPEED")
+st.subheader(
+    "🎚️ MASTER SPEED"
+)
 
 
 speed = st.slider(
@@ -202,7 +238,9 @@ st.markdown(
 # CONTROLLER
 # ============================================================
 
-st.subheader("🎮 DRONE CONTROL")
+st.subheader(
+    "🎮 DRONE CONTROL"
+)
 
 
 controller_html = """
@@ -216,9 +254,11 @@ controller_html = """
 name="viewport"
 content="width=device-width, initial-scale=1">
 
+
 <style>
 
-html,body {
+html,
+body {
 
     margin:0;
 
@@ -401,6 +441,7 @@ html,body {
 
 </head>
 
+
 <body>
 
 
@@ -413,67 +454,81 @@ html,body {
 
 
 <!-- ========================================================
-     THROTTLE
+     THROTTLE JOYSTICK
      ======================================================== -->
 
 <div class="area">
+
 
     <div
         class="base"
         id="throttleBase"
     >
 
+
         <div class="direction up">
             ▲
         </div>
 
+
         <div class="direction down">
             ▼
         </div>
+
 
         <div
             class="stick"
             id="throttleStick"
         ></div>
 
+
     </div>
+
 
     <div class="label">
         THROTTLE
     </div>
 
+
 </div>
 
 
 <!-- ========================================================
-     STEERING
+     STEERING JOYSTICK
      ======================================================== -->
 
 <div class="area">
+
 
     <div
         class="base"
         id="steeringBase"
     >
 
+
         <div class="direction left">
             ◀
         </div>
 
+
         <div class="direction right">
             ▶
         </div>
+
 
         <div
             class="stick"
             id="steeringStick"
         ></div>
 
+
     </div>
+
 
     <div class="label">
         STEERING
     </div>
+
 
 </div>
 
@@ -552,13 +607,8 @@ let steeringActive = false;
 
 
 // ============================================================
-// SEND
+// SEND MOTOR COMMAND
 // ============================================================
-
-let lastLeft = 999;
-
-let lastRight = 999;
-
 
 function sendMotors(
     left,
@@ -570,23 +620,6 @@ function sendMotors(
 
     right =
         Math.round(right);
-
-
-    // Avoid unnecessary requests
-
-    if (
-        left === lastLeft &&
-        right === lastRight
-    ) {
-
-        return;
-
-    }
-
-
-    lastLeft = left;
-
-    lastRight = right;
 
 
     const url =
@@ -643,17 +676,9 @@ function sendMotors(
 function updateMotors() {
 
 
-    // ========================================================
-    // BASE THROTTLE
-    // ========================================================
-
     let t =
         throttle;
 
-
-    // ========================================================
-    // STEERING
-    // ========================================================
 
     let s =
         steering;
@@ -665,26 +690,19 @@ function updateMotors() {
 
 
     // ========================================================
-    // STOP
+    // NO FORWARD/BACKWARD
     // ========================================================
 
     if (
         Math.abs(t) < 0.01
     ) {
 
-        /*
-         * IMPORTANT:
-         *
-         * When throttle is centered,
-         * steering does NOT suddenly reverse
-         * both motors.
-         *
-         * Small pivot is allowed,
-         * but heavily limited.
-         */
+
+        // Small pivot control only
 
         left =
             -s * 0.20;
+
 
         right =
             s * 0.20;
@@ -698,16 +716,17 @@ function updateMotors() {
 
     else {
 
+
         /*
-         * BOTH motors always keep the same
-         * forward/reverse direction.
+         * Steering changes the amount of thrust
+         * on each side.
          *
-         * Steering simply reduces one side.
+         * Both motors remain in the SAME
+         * physical direction.
          */
 
         const turn =
-            Math.abs(t) *
-            s;
+            Math.abs(t) * s;
 
 
         left =
@@ -749,13 +768,11 @@ function updateMotors() {
     // ========================================================
 
     left =
-        left *
-        SPEED;
+        left * SPEED;
 
 
     right =
-        right *
-        SPEED;
+        right * SPEED;
 
 
     sendMotors(
@@ -767,12 +784,13 @@ function updateMotors() {
 
 
 // ============================================================
-// THROTTLE CONTROL
+// THROTTLE
 // ============================================================
 
 function moveThrottle(
     event
 ) {
+
 
     const rect =
         throttleBase
@@ -808,7 +826,8 @@ function moveThrottle(
             CENTER +
             y -
             38
-        ) + "px";
+        ) +
+        "px";
 
 
     updateMotors();
@@ -817,12 +836,13 @@ function moveThrottle(
 
 
 // ============================================================
-// STEERING CONTROL
+// STEERING
 // ============================================================
 
 function moveSteering(
     event
 ) {
+
 
     const rect =
         steeringBase
@@ -854,7 +874,8 @@ function moveSteering(
             CENTER +
             x -
             38
-        ) + "px";
+        ) +
+        "px";
 
 
     steeringStick.style.top =
@@ -867,7 +888,7 @@ function moveSteering(
 
 
 // ============================================================
-// RESET
+// RESET THROTTLE
 // ============================================================
 
 function resetThrottle() {
@@ -875,12 +896,14 @@ function resetThrottle() {
     throttle =
         0;
 
+
     throttleActive =
         false;
 
 
     throttleStick.style.left =
         "67px";
+
 
     throttleStick.style.top =
         "67px";
@@ -891,10 +914,15 @@ function resetThrottle() {
 }
 
 
+// ============================================================
+// RESET STEERING
+// ============================================================
+
 function resetSteering() {
 
     steering =
         0;
+
 
     steeringActive =
         false;
@@ -902,6 +930,7 @@ function resetSteering() {
 
     steeringStick.style.left =
         "67px";
+
 
     steeringStick.style.top =
         "67px";
@@ -913,21 +942,26 @@ function resetSteering() {
 
 
 // ============================================================
-// THROTTLE EVENTS
+// THROTTLE POINTER
 // ============================================================
 
 throttleBase.addEventListener(
     "pointerdown",
     function(event) {
 
+
         throttleActive =
             true;
+
 
         throttleBase.setPointerCapture(
             event.pointerId
         );
 
-        moveThrottle(event);
+
+        moveThrottle(
+            event
+        );
 
     }
 );
@@ -937,11 +971,14 @@ throttleBase.addEventListener(
     "pointermove",
     function(event) {
 
+
         if (
             throttleActive
         ) {
 
-            moveThrottle(event);
+            moveThrottle(
+                event
+            );
 
         }
 
@@ -962,21 +999,26 @@ throttleBase.addEventListener(
 
 
 // ============================================================
-// STEERING EVENTS
+// STEERING POINTER
 // ============================================================
 
 steeringBase.addEventListener(
     "pointerdown",
     function(event) {
 
+
         steeringActive =
             true;
+
 
         steeringBase.setPointerCapture(
             event.pointerId
         );
 
-        moveSteering(event);
+
+        moveSteering(
+            event
+        );
 
     }
 );
@@ -986,11 +1028,14 @@ steeringBase.addEventListener(
     "pointermove",
     function(event) {
 
+
         if (
             steeringActive
         ) {
 
-            moveSteering(event);
+            moveSteering(
+                event
+            );
 
         }
 
@@ -1007,6 +1052,36 @@ steeringBase.addEventListener(
 steeringBase.addEventListener(
     "pointercancel",
     resetSteering
+);
+
+
+// ============================================================
+// CONTINUOUS HEARTBEAT
+// ============================================================
+//
+// IMPORTANT:
+//
+// The Wemos has a 1.5 second safety timeout.
+//
+// While either joystick is held,
+// keep sending the current motor values.
+//
+
+setInterval(
+    function() {
+
+
+        if (
+            throttleActive ||
+            steeringActive
+        ) {
+
+            updateMotors();
+
+        }
+
+    },
+    200
 );
 
 
@@ -1018,38 +1093,45 @@ window.addEventListener(
     "blur",
     function() {
 
-        throttle = 0;
 
-        steering = 0;
+        throttle =
+            0;
 
-        throttleActive = false;
 
-        steeringActive = false;
+        steering =
+            0;
+
+
+        throttleActive =
+            false;
+
+
+        steeringActive =
+            false;
 
 
         throttleStick.style.left =
             "67px";
 
+
         throttleStick.style.top =
             "67px";
+
 
         steeringStick.style.left =
             "67px";
 
+
         steeringStick.style.top =
             "67px";
-
-
-        lastLeft = 999;
-
-        lastRight = 999;
 
 
         fetch(
             "http://" +
             WEMOS +
             "/stop"
-        ).catch(
+        )
+        .catch(
             function() {}
         );
 
@@ -1059,16 +1141,22 @@ window.addEventListener(
 
 </script>
 
+
 </body>
 
 </html>
 """
 
 
+# ============================================================
+# INSERT CONFIG
+# ============================================================
+
 controller_html = controller_html.replace(
     "__WEMOS_IP__",
     WEMOS_IP
 )
+
 
 controller_html = controller_html.replace(
     "__SPEED__",
@@ -1088,7 +1176,10 @@ st.iframe(
 
 st.divider()
 
-st.subheader("🚨 SAFETY")
+
+st.subheader(
+    "🚨 SAFETY"
+)
 
 
 stop_html = """
@@ -1101,9 +1192,13 @@ stop_html = """
 <style>
 
 body {
+
     margin:0;
+
     background:transparent;
+
 }
+
 
 button {
 
@@ -1129,19 +1224,26 @@ button {
 
 </head>
 
+
 <body>
 
+
 <button onclick="stop()">
+
 🛑 EMERGENCY STOP
+
 </button>
 
+
 <script>
+
 
 const WEMOS =
     "__WEMOS_IP__";
 
 
 function stop() {
+
 
     fetch(
         "http://" +
@@ -1152,9 +1254,12 @@ function stop() {
         }
     );
 
+
 }
 
+
 </script>
+
 
 </body>
 
@@ -1175,12 +1280,16 @@ st.iframe(
 
 
 # ============================================================
-# CONNECTION
+# CONNECTION INFO
 # ============================================================
 
 st.divider()
 
-st.subheader("📡 WEMOS CONNECTION")
+
+st.subheader(
+    "📡 WEMOS CONNECTION"
+)
+
 
 st.code(
     f"""
