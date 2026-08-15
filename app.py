@@ -3,7 +3,7 @@ import requests
 
 
 # ============================================================
-# WEMOS CONFIG
+# WEMOS
 # ============================================================
 
 WEMOS_IP = "192.168.0.9"
@@ -11,7 +11,7 @@ WEMOS_URL = f"http://{WEMOS_IP}"
 
 
 # ============================================================
-# PAGE CONFIG
+# PAGE
 # ============================================================
 
 st.set_page_config(
@@ -41,11 +41,6 @@ h2 {
     text-align: center;
 }
 
-.status {
-    text-align: center;
-    font-size: 18px;
-}
-
 </style>
 """, unsafe_allow_html=True)
 
@@ -57,39 +52,40 @@ h2 {
 st.title("⚓ SUBMARINE V2")
 
 st.markdown(
-    '<div class="status">🟢 PROTOTYPE 2 CONTROL SYSTEM</div>',
+    "<h3 style='text-align:center;'>"
+    "🟢 PROTOTYPE 2 CONTROL SYSTEM"
+    "</h3>",
     unsafe_allow_html=True
 )
 
 
 # ============================================================
-# WEMOS CONNECTION
+# WEMOS STATUS
 # ============================================================
 
 try:
 
     response = requests.get(
         WEMOS_URL,
-        timeout=0.5
+        timeout=0.7
     )
 
-    wemos_online = response.status_code == 200
+    if response.status_code == 200:
+
+        st.success(
+            f"🟢 WEMOS ONLINE — {WEMOS_IP}"
+        )
+
+    else:
+
+        st.warning(
+            f"🟡 WEMOS RESPONDED — HTTP {response.status_code}"
+        )
 
 except requests.RequestException:
 
-    wemos_online = False
-
-
-if wemos_online:
-
-    st.success(
-        "🟢 WEMOS ONLINE — 192.168.0.9"
-    )
-
-else:
-
     st.error(
-        "🔴 WEMOS OFFLINE — 192.168.0.9"
+        f"🔴 WEMOS OFFLINE — {WEMOS_IP}"
     )
 
 
@@ -118,11 +114,9 @@ body {
 
     background: #080b10;
 
-    color: white;
+    text-align: center;
 
     font-family: Arial;
-
-    text-align: center;
 
 }
 
@@ -130,7 +124,7 @@ video {
 
     width: 100%;
 
-    max-width: 600px;
+    max-width: 650px;
 
     border-radius: 15px;
 
@@ -140,15 +134,17 @@ video {
 
 button {
 
-    padding: 12px 20px;
+    padding: 14px 22px;
 
     margin: 10px;
 
-    border-radius: 10px;
-
     border: none;
 
-    font-size: 16px;
+    border-radius: 12px;
+
+    font-size: 17px;
+
+    cursor: pointer;
 
 }
 
@@ -159,16 +155,21 @@ button {
 
 <body>
 
+
 <video
 id="camera"
 autoplay
 playsinline>
 </video>
 
+
 <br>
 
+
 <button onclick="startCamera()">
+
 📹 START REAR CAMERA
+
 </button>
 
 
@@ -179,12 +180,15 @@ async function startCamera() {
     try {
 
         const stream =
-            await navigator.mediaDevices.getUserMedia({
+            await navigator.mediaDevices
+            .getUserMedia({
 
                 video: {
+
                     facingMode: {
                         ideal: "environment"
                     }
+
                 },
 
                 audio: false
@@ -202,8 +206,8 @@ async function startCamera() {
     catch(error) {
 
         alert(
-            "Camera error: "
-            + error.message
+            "Camera error: " +
+            error.message
         );
 
     }
@@ -211,6 +215,7 @@ async function startCamera() {
 }
 
 </script>
+
 
 </body>
 
@@ -238,6 +243,7 @@ speed = st.slider(
     step=1
 )
 
+
 st.markdown(
     f"<h2>{speed}%</h2>",
     unsafe_allow_html=True
@@ -262,6 +268,7 @@ joystick_html = f"""
 name="viewport"
 content="width=device-width, initial-scale=1">
 
+
 <style>
 
 body {{
@@ -276,18 +283,20 @@ body {{
 
     align-items: center;
 
-    height: 330px;
+    height: 340px;
 
     touch-action: none;
+
+    user-select: none;
 
 }}
 
 
 #base {{
 
-    width: 240px;
+    width: 250px;
 
-    height: 240px;
+    height: 250px;
 
     border-radius: 50%;
 
@@ -314,12 +323,13 @@ body {{
 
     position: absolute;
 
-    left: 80px;
+    left: 85px;
 
-    top: 80px;
+    top: 85px;
 
     box-shadow:
-        0 0 20px rgba(75,131,255,0.5);
+        0 0 20px
+        rgba(75,131,255,0.5);
 
 }}
 
@@ -342,24 +352,31 @@ body {{
 
 
 // ============================================================
-// WEMOS
+// CONFIG
 // ============================================================
 
 const WEMOS =
     "{WEMOS_IP}";
 
+const SPEED =
+    {speed};
+
 
 const base =
-    document.getElementById("base");
+    document.getElementById(
+        "base"
+    );
 
 
 const stick =
-    document.getElementById("stick");
+    document.getElementById(
+        "stick"
+    );
 
 
-const center = 120;
+const CENTER = 125;
 
-const maxDistance = 80;
+const MAX_DISTANCE = 85;
 
 let active = false;
 
@@ -370,18 +387,56 @@ let active = false;
 
 function sendMotors(left, right) {{
 
-    fetch(
+    const url =
         "http://" +
         WEMOS +
         "/motors?left=" +
         Math.round(left) +
         "&right=" +
-        Math.round(right)
-    )
-    .catch(function(error) {{
+        Math.round(right);
+
+
+    fetch(url)
+
+        .then(function(response) {{
+
+            if (!response.ok) {{
+
+                console.log(
+                    "Wemos error:",
+                    response.status
+                );
+
+            }}
+
+        }})
+
+        .catch(function(error) {{
+
+            console.log(
+                "Wemos connection error:",
+                error
+            );
+
+        }});
+
+}}
+
+
+// ============================================================
+// STOP
+// ============================================================
+
+function stopMotors() {{
+
+    fetch(
+        "http://" +
+        WEMOS +
+        "/stop"
+    ).catch(function(error) {{
 
         console.log(
-            "Wemos connection error:",
+            "Stop error:",
             error
         );
 
@@ -391,7 +446,7 @@ function sendMotors(left, right) {{
 
 
 // ============================================================
-// JOYSTICK CONTROL
+// JOYSTICK
 // ============================================================
 
 function control(x, y) {{
@@ -403,52 +458,53 @@ function control(x, y) {{
         );
 
 
-    // Keep stick inside circle
-
     if (
-        distance > maxDistance
+        distance >
+        MAX_DISTANCE
     ) {{
 
         x =
             x /
             distance *
-            maxDistance;
+            MAX_DISTANCE;
 
         y =
             y /
             distance *
-            maxDistance;
+            MAX_DISTANCE;
 
     }}
 
 
-    // Move visual stick
+    // ========================================================
+    // VISUAL STICK
+    // ========================================================
 
     stick.style.left =
         (
-            center +
+            CENTER +
             x -
             40
-        ) + "px";
+        ) +
+        "px";
 
 
     stick.style.top =
         (
-            center +
+            CENTER +
             y -
             40
-        ) + "px";
+        ) +
+        "px";
 
 
     // ========================================================
     // THROTTLE
     // ========================================================
 
-    // Up = positive throttle
-    // Down = negative throttle
-
     let throttle =
-        -y / maxDistance;
+        -y /
+        MAX_DISTANCE;
 
 
     // ========================================================
@@ -456,7 +512,8 @@ function control(x, y) {{
     // ========================================================
 
     let steering =
-        x / maxDistance;
+        x /
+        MAX_DISTANCE;
 
 
     // ========================================================
@@ -496,17 +553,17 @@ function control(x, y) {{
 
 
     // ========================================================
-    // SPEED LIMIT
+    // APPLY SPEED SLIDER
     // ========================================================
 
     left =
         left *
-        {speed};
+        SPEED;
 
 
     right =
         right *
-        {speed};
+        SPEED;
 
 
     // ========================================================
@@ -522,7 +579,7 @@ function control(x, y) {{
 
 
 // ============================================================
-// RELEASE JOYSTICK
+// RELEASE
 // ============================================================
 
 function release() {{
@@ -530,22 +587,15 @@ function release() {{
     active = false;
 
 
-    // Return stick to center
-
     stick.style.left =
-        "80px";
+        "85px";
 
 
     stick.style.top =
-        "80px";
+        "85px";
 
 
-    // STOP MOTORS
-
-    sendMotors(
-        0,
-        0
-    );
+    stopMotors();
 
 }}
 
@@ -575,11 +625,11 @@ base.addEventListener(
 
             event.clientX -
             rect.left -
-            center,
+            CENTER,
 
             event.clientY -
             rect.top -
-            center
+            CENTER
 
         );
 
@@ -612,11 +662,11 @@ base.addEventListener(
 
             event.clientX -
             rect.left -
-            center,
+            CENTER,
 
             event.clientY -
             rect.top -
-            center
+            CENTER
 
         );
 
@@ -668,7 +718,7 @@ base.addEventListener(
 
 st.iframe(
     joystick_html,
-    height=350
+    height=360
 )
 
 
@@ -677,6 +727,7 @@ st.iframe(
 # ============================================================
 
 st.divider()
+
 
 if st.button(
     "🛑 EMERGENCY STOP",
@@ -702,7 +753,7 @@ if st.button(
 
 
 # ============================================================
-# MANUAL CONNECTION TEST
+# TEST WEMOS
 # ============================================================
 
 if st.button(
@@ -731,7 +782,8 @@ if st.button(
         else:
 
             st.error(
-                "Wemos returned an error."
+                f"Wemos HTTP error: "
+                f"{response.status_code}"
             )
 
 
