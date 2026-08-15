@@ -1,13 +1,11 @@
 import streamlit as st
-import requests
 
 
 # ============================================================
-# WEMOS CONFIG
+# CONFIG
 # ============================================================
 
 WEMOS_IP = "192.168.0.9"
-WEMOS_URL = f"http://{WEMOS_IP}"
 
 
 # ============================================================
@@ -22,31 +20,39 @@ st.set_page_config(
 
 
 # ============================================================
-# CSS
+# PAGE CSS
 # ============================================================
 
-st.markdown("""
-<style>
+st.markdown(
+    """
+    <style>
 
-.stApp {
-    background: #080b10;
-    color: white;
-}
+    .stApp {
+        background: #080b10;
+        color: white;
+    }
 
-h1 {
-    text-align: center;
-}
+    h1 {
+        text-align: center;
+    }
 
-h2 {
-    text-align: center;
-}
+    h2 {
+        text-align: center;
+    }
 
-h3 {
-    text-align: center;
-}
+    h3 {
+        text-align: center;
+    }
 
-</style>
-""", unsafe_allow_html=True)
+    .block-container {
+        padding-top: 1rem;
+        padding-bottom: 2rem;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 
 # ============================================================
@@ -66,34 +72,173 @@ st.markdown(
 
 
 # ============================================================
-# WEMOS STATUS
+# WEMOS BROWSER STATUS
+#
+# IMPORTANT:
+# Python/Streamlit is NOT checking the Wemos.
+# The browser running this page checks 192.168.0.9 directly.
 # ============================================================
 
-try:
+st.subheader("📡 WEMOS CONNECTION")
 
-    response = requests.get(
-        WEMOS_URL,
-        timeout=0.7
+
+status_html = """
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1">
+
+<style>
+
+body {
+
+    margin: 0;
+
+    background: transparent;
+
+    color: white;
+
+    font-family: Arial;
+
+    text-align: center;
+
+}
+
+#status {
+
+    padding: 12px;
+
+    border-radius: 12px;
+
+    background: #202833;
+
+    font-size: 18px;
+
+    font-weight: bold;
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div id="status">
+
+🟡 CHECKING WEMOS...
+
+</div>
+
+
+<script>
+
+
+const WEMOS =
+    "__WEMOS_IP__";
+
+
+const status =
+    document.getElementById(
+        "status"
+    );
+
+
+// ============================================================
+// CHECK WEMOS
+// ============================================================
+
+function checkWemos() {
+
+    fetch(
+        "http://" +
+        WEMOS +
+        "/",
+        {
+            method: "GET",
+            cache: "no-store"
+        }
     )
 
-    if response.status_code == 200:
+    .then(
+        function(response) {
 
-        st.success(
-            f"🟢 WEMOS ONLINE — {WEMOS_IP}"
-        )
+            if (response.ok) {
 
-    else:
+                status.innerHTML =
+                    "🟢 WEMOS ONLINE — " +
+                    WEMOS;
 
-        st.warning(
-            f"🟡 WEMOS RESPONDED — "
-            f"HTTP {response.status_code}"
-        )
+            }
 
-except requests.RequestException:
+            else {
 
-    st.error(
-        f"🔴 WEMOS OFFLINE — {WEMOS_IP}"
+                status.innerHTML =
+                    "🟡 WEMOS RESPONDED — HTTP " +
+                    response.status;
+
+            }
+
+        }
     )
+
+    .catch(
+        function(error) {
+
+            status.innerHTML =
+                "🔴 WEMOS OFFLINE — " +
+                WEMOS;
+
+            console.log(
+                "Wemos connection error:",
+                error
+            );
+
+        }
+    );
+
+}
+
+
+// Check immediately
+
+checkWemos();
+
+
+// Check every 3 seconds
+
+setInterval(
+    checkWemos,
+    3000
+);
+
+
+</script>
+
+
+</body>
+
+</html>
+"""
+
+
+status_html = status_html.replace(
+    "__WEMOS_IP__",
+    WEMOS_IP
+)
+
+
+st.iframe(
+    status_html,
+    height=65
+)
 
 
 # ============================================================
@@ -117,33 +262,54 @@ content="width=device-width, initial-scale=1">
 <style>
 
 body {
+
     margin: 0;
+
     background: #080b10;
+
     color: white;
-    text-align: center;
+
     font-family: Arial;
+
+    text-align: center;
+
 }
 
 video {
+
     width: 100%;
+
     max-width: 650px;
+
     border-radius: 15px;
+
     background: black;
+
 }
 
 button {
+
     padding: 14px 22px;
+
     margin: 10px;
+
     border: none;
+
     border-radius: 12px;
+
     font-size: 17px;
+
+    font-weight: bold;
+
 }
 
 </style>
 
 </head>
 
+
 <body>
+
 
 <video
 id="camera"
@@ -151,30 +317,41 @@ autoplay
 playsinline>
 </video>
 
+
 <br>
 
+
 <button onclick="startCamera()">
+
 📹 START REAR CAMERA
+
 </button>
 
+
 <script>
+
 
 async function startCamera() {
 
     try {
 
         const stream =
-            await navigator.mediaDevices.getUserMedia({
+            await navigator
+            .mediaDevices
+            .getUserMedia({
 
                 video: {
+
                     facingMode: {
                         ideal: "environment"
                     }
+
                 },
 
                 audio: false
 
             });
+
 
         document.getElementById(
             "camera"
@@ -193,7 +370,9 @@ async function startCamera() {
 
 }
 
+
 </script>
+
 
 </body>
 
@@ -208,7 +387,7 @@ st.iframe(
 
 
 # ============================================================
-# SPEED
+# SPEED SLIDER
 # ============================================================
 
 st.subheader("🎚️ MOTOR SPEED")
@@ -224,7 +403,11 @@ speed = st.slider(
 
 
 st.markdown(
-    f"<h2>{speed}%</h2>",
+    f"""
+    <h2>
+    {speed}%
+    </h2>
+    """,
     unsafe_allow_html=True
 )
 
@@ -237,8 +420,8 @@ st.subheader("🕹️ THRUSTER CONTROL")
 
 
 # IMPORTANT:
-# This is NOT an f-string.
-# Therefore JavaScript { } do not need escaping.
+# This is intentionally NOT an f-string.
+# JavaScript { } therefore causes no Python syntax problems.
 
 joystick_html = """
 <!DOCTYPE html>
@@ -265,13 +448,14 @@ body {
 
     align-items: center;
 
-    height: 340px;
+    height: 350px;
 
     touch-action: none;
 
     user-select: none;
 
 }
+
 
 #base {
 
@@ -290,6 +474,7 @@ body {
     touch-action: none;
 
 }
+
 
 #stick {
 
@@ -313,6 +498,25 @@ body {
 
 }
 
+
+#label {
+
+    position: absolute;
+
+    width: 100%;
+
+    top: 265px;
+
+    text-align: center;
+
+    color: #aaa;
+
+    font-family: Arial;
+
+    font-size: 14px;
+
+}
+
 </style>
 
 </head>
@@ -325,6 +529,12 @@ body {
 
     <div id="stick"></div>
 
+    <div id="label">
+
+        PUSH TO CONTROL
+
+    </div>
+
 </div>
 
 
@@ -335,125 +545,166 @@ body {
 // CONFIG
 // ============================================================
 
-const WEMOS = "__WEMOS_IP__";
+const WEMOS =
+    "__WEMOS_IP__";
 
-const SPEED = __SPEED__;
+
+const SPEED =
+    __SPEED__;
 
 
 const base =
-    document.getElementById("base");
+    document.getElementById(
+        "base"
+    );
 
 
 const stick =
-    document.getElementById("stick");
+    document.getElementById(
+        "stick"
+    );
 
 
-const CENTER = 125;
-
-const MAX_DISTANCE = 85;
-
-
-// Send commands every 100 ms
-
-const SEND_INTERVAL = 100;
+const CENTER =
+    125;
 
 
-let active = false;
+const MAX_DISTANCE =
+    85;
 
-let lastLeft = 0;
 
-let lastRight = 0;
+let active =
+    false;
 
-let sendTimer = null;
+
+let lastLeft =
+    0;
+
+
+let lastRight =
+    0;
+
+
+let sendTimer =
+    null;
 
 
 // ============================================================
 // SEND MOTOR COMMAND
 // ============================================================
 
-function sendMotors(left, right) {
+function sendMotors(
+    left,
+    right
+) {
+
+    lastLeft =
+        Math.round(left);
+
+
+    lastRight =
+        Math.round(right);
+
 
     const url =
         "http://" +
         WEMOS +
         "/motors?left=" +
-        Math.round(left) +
+        lastLeft +
         "&right=" +
-        Math.round(right);
+        lastRight;
 
 
-    fetch(url)
+    fetch(
+        url,
+        {
+            method: "GET",
+            cache: "no-store"
+        }
+    )
 
-        .then(function(response) {
+    .then(
+        function(response) {
 
             if (!response.ok) {
 
                 console.log(
-                    "Wemos error:",
+                    "Wemos motor error:",
                     response.status
                 );
 
             }
 
-        })
+        }
+    )
 
-        .catch(function(error) {
+    .catch(
+        function(error) {
 
             console.log(
-                "Wemos connection error:",
+                "Motor connection error:",
                 error
             );
 
-        });
-
-}
-
-
-// ============================================================
-// REPEATED COMMAND SENDER
-// ============================================================
-
-function startSending() {
-
-    if (sendTimer !== null) {
-
-        return;
-
-    }
-
-
-    sendTimer = setInterval(
-        function() {
-
-            if (active) {
-
-                sendMotors(
-                    lastLeft,
-                    lastRight
-                );
-
-            }
-
-        },
-        SEND_INTERVAL
+        }
     );
 
 }
 
 
 // ============================================================
-// STOP REPEATED SENDING
+// CONTINUOUS MOTOR UPDATE
+// ============================================================
+
+function startSending() {
+
+    if (
+        sendTimer !== null
+    ) {
+
+        return;
+
+    }
+
+
+    sendTimer =
+        setInterval(
+            function() {
+
+                if (
+                    active
+                ) {
+
+                    sendMotors(
+                        lastLeft,
+                        lastRight
+                    );
+
+                }
+
+            },
+            100
+        );
+
+}
+
+
+// ============================================================
+// STOP REPEATED COMMANDS
 // ============================================================
 
 function stopSending() {
 
-    if (sendTimer !== null) {
+    if (
+        sendTimer !== null
+    ) {
 
         clearInterval(
             sendTimer
         );
 
-        sendTimer = null;
+        sendTimer =
+            null;
 
     }
 
@@ -466,25 +717,34 @@ function stopSending() {
 
 function stopMotors() {
 
-    lastLeft = 0;
+    lastLeft =
+        0;
 
-    lastRight = 0;
+
+    lastRight =
+        0;
 
 
     fetch(
         "http://" +
         WEMOS +
-        "/stop"
+        "/stop",
+        {
+            method: "GET",
+            cache: "no-store"
+        }
     )
 
-    .catch(function(error) {
+    .catch(
+        function(error) {
 
-        console.log(
-            "Stop error:",
-            error
-        );
+            console.log(
+                "Stop error:",
+                error
+            );
 
-    });
+        }
+    );
 
 }
 
@@ -493,7 +753,15 @@ function stopMotors() {
 // JOYSTICK CONTROL
 // ============================================================
 
-function control(x, y) {
+function control(
+    x,
+    y
+) {
+
+
+    // ========================================================
+    // LIMIT STICK TO CIRCLE
+    // ========================================================
 
     const distance =
         Math.sqrt(
@@ -502,16 +770,16 @@ function control(x, y) {
         );
 
 
-    // Keep stick inside circle
-
     if (
-        distance > MAX_DISTANCE
+        distance >
+        MAX_DISTANCE
     ) {
 
         x =
             x /
             distance *
             MAX_DISTANCE;
+
 
         y =
             y /
@@ -522,7 +790,7 @@ function control(x, y) {
 
 
     // ========================================================
-    // VISUAL STICK
+    // MOVE VISUAL STICK
     // ========================================================
 
     stick.style.left =
@@ -530,7 +798,8 @@ function control(x, y) {
             CENTER +
             x -
             40
-        ) + "px";
+        ) +
+        "px";
 
 
     stick.style.top =
@@ -538,7 +807,8 @@ function control(x, y) {
             CENTER +
             y -
             40
-        ) + "px";
+        ) +
+        "px";
 
 
     // ========================================================
@@ -560,7 +830,52 @@ function control(x, y) {
 
 
     // ========================================================
-    // DIFFERENTIAL MIXING
+    // DEADZONE
+    // ========================================================
+
+    const DEADZONE =
+        0.08;
+
+
+    if (
+        Math.abs(throttle) <
+        DEADZONE
+    ) {
+
+        throttle =
+            0;
+
+    }
+
+
+    if (
+        Math.abs(steering) <
+        DEADZONE
+    ) {
+
+        steering =
+            0;
+
+    }
+
+
+    // ========================================================
+    // DIFFERENTIAL THRUSTER MIXING
+    //
+    // Forward:
+    //
+    // left  = +
+    // right = +
+    //
+    // Back:
+    //
+    // left  = -
+    // right = -
+    //
+    // Turn:
+    //
+    // left  = +
+    // right = -
     // ========================================================
 
     let left =
@@ -596,7 +911,7 @@ function control(x, y) {
 
 
     // ========================================================
-    // SPEED LIMIT
+    // APPLY SPEED SLIDER
     // ========================================================
 
     left =
@@ -610,15 +925,20 @@ function control(x, y) {
 
 
     // ========================================================
-    // SAVE CURRENT COMMAND
+    // SAVE
     // ========================================================
 
-    lastLeft = left;
+    lastLeft =
+        left;
 
-    lastRight = right;
+
+    lastRight =
+        right;
 
 
-    // Send immediately
+    // ========================================================
+    // SEND IMMEDIATELY
+    // ========================================================
 
     sendMotors(
         left,
@@ -629,12 +949,14 @@ function control(x, y) {
 
 
 // ============================================================
-// RELEASE
+// RELEASE JOYSTICK
 // ============================================================
 
 function release() {
 
-    active = false;
+    active =
+        false;
+
 
     stopSending();
 
@@ -661,7 +983,8 @@ base.addEventListener(
 
     function(event) {
 
-        active = true;
+        active =
+            true;
 
 
         base.setPointerCapture(
@@ -702,7 +1025,9 @@ base.addEventListener(
 
     function(event) {
 
-        if (!active) {
+        if (
+            !active
+        ) {
 
             return;
 
@@ -771,7 +1096,9 @@ window.addEventListener(
 
     function() {
 
-        if (active) {
+        if (
+            active
+        ) {
 
             release();
 
@@ -792,13 +1119,14 @@ window.addEventListener(
 
 
 # ============================================================
-# INSERT PYTHON VALUES
+# INSERT CONFIG VALUES
 # ============================================================
 
 joystick_html = joystick_html.replace(
     "__WEMOS_IP__",
     WEMOS_IP
 )
+
 
 joystick_html = joystick_html.replace(
     "__SPEED__",
@@ -808,7 +1136,7 @@ joystick_html = joystick_html.replace(
 
 st.iframe(
     joystick_html,
-    height=360
+    height=370
 )
 
 
@@ -819,67 +1147,155 @@ st.iframe(
 st.divider()
 
 
-if st.button(
-    "🛑 EMERGENCY STOP",
-    use_container_width=True
-):
-
-    try:
-
-        requests.get(
-            f"{WEMOS_URL}/stop",
-            timeout=1
-        )
+st.subheader("🚨 SAFETY")
 
 
-        st.success(
-            "🛑 THRUSTERS STOPPED"
-        )
+stop_html = """
+<!DOCTYPE html>
 
-    except requests.RequestException:
+<html>
 
-        st.error(
-            "❌ WEMOS NOT REACHABLE"
-        )
+<head>
+
+<style>
+
+body {
+
+    margin: 0;
+
+    font-family: Arial;
+
+    text-align: center;
+
+}
+
+button {
+
+    width: 100%;
+
+    padding: 18px;
+
+    border: none;
+
+    border-radius: 14px;
+
+    background: #d71920;
+
+    color: white;
+
+    font-size: 22px;
+
+    font-weight: bold;
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<button onclick="emergencyStop()">
+
+🛑 EMERGENCY STOP
+
+</button>
+
+
+<script>
+
+
+const WEMOS =
+    "__WEMOS_IP__";
+
+
+function emergencyStop() {
+
+    fetch(
+        "http://" +
+        WEMOS +
+        "/stop",
+        {
+            method: "GET",
+            cache: "no-store"
+        }
+    )
+
+    .then(
+        function() {
+
+            alert(
+                "🛑 THRUSTERS STOPPED"
+            );
+
+        }
+    )
+
+    .catch(
+        function(error) {
+
+            alert(
+                "❌ WEMOS NOT REACHABLE"
+            );
+
+            console.log(
+                error
+            );
+
+        }
+    );
+
+}
+
+
+</script>
+
+
+</body>
+
+</html>
+"""
+
+
+stop_html = stop_html.replace(
+    "__WEMOS_IP__",
+    WEMOS_IP
+)
+
+
+st.iframe(
+    stop_html,
+    height=80
+)
 
 
 # ============================================================
-# TEST WEMOS
+# CONNECTION INFORMATION
 # ============================================================
 
-if st.button(
-    "📡 TEST WEMOS",
-    use_container_width=True
-):
-
-    try:
-
-        response = requests.get(
-            WEMOS_URL,
-            timeout=1
-        )
+st.divider()
 
 
-        if response.status_code == 200:
-
-            st.success(
-                "🟢 WEMOS ONLINE!"
-            )
-
-            st.code(
-                response.text
-            )
-
-        else:
-
-            st.error(
-                f"Wemos HTTP error: "
-                f"{response.status_code}"
-            )
+st.subheader("📡 CONNECTION")
 
 
-    except requests.RequestException as error:
+st.code(
+    f"""
+WEMOS IP
+{WEMOS_IP}
 
-        st.error(
-            f"Connection failed: {error}"
-        )
+Control endpoint
+http://{WEMOS_IP}/motors
+
+Stop endpoint
+http://{WEMOS_IP}/stop
+""",
+    language="text"
+)
+
+
+st.caption(
+    "Prototype 2 • Wemos D1 R1 • Wi-Fi control"
+)
