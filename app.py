@@ -40,10 +40,6 @@ st.markdown(
         text-align: center;
     }
 
-    h3 {
-        text-align: center;
-    }
-
     </style>
     """,
     unsafe_allow_html=True
@@ -58,164 +54,11 @@ st.title("⚓ SUBMARINE V2")
 
 st.markdown(
     """
-    <h3>
-    🟢 PROTOTYPE 2 CONTROL SYSTEM
+    <h3 style="text-align:center;">
+    🟢 PROTOTYPE 2 • DRONE CONTROL
     </h3>
     """,
     unsafe_allow_html=True
-)
-
-
-# ============================================================
-# WEMOS STATUS
-# ============================================================
-
-st.subheader("📡 WEMOS CONNECTION")
-
-
-status_html = """
-<!DOCTYPE html>
-
-<html>
-
-<head>
-
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1">
-
-<style>
-
-body {
-
-    margin: 0;
-
-    background: transparent;
-
-    color: white;
-
-    font-family: Arial;
-
-    text-align: center;
-
-}
-
-#status {
-
-    padding: 12px;
-
-    border-radius: 12px;
-
-    background: #202833;
-
-    font-size: 18px;
-
-    font-weight: bold;
-
-}
-
-</style>
-
-</head>
-
-<body>
-
-
-<div id="status">
-
-🟡 CHECKING WEMOS...
-
-</div>
-
-
-<script>
-
-
-const WEMOS =
-    "__WEMOS_IP__";
-
-
-const status =
-    document.getElementById(
-        "status"
-    );
-
-
-function checkWemos() {
-
-    fetch(
-        "http://" +
-        WEMOS +
-        "/",
-        {
-            method: "GET",
-            cache: "no-store"
-        }
-    )
-
-    .then(
-        function(response) {
-
-            if (response.ok) {
-
-                status.innerHTML =
-                    "🟢 WEMOS ONLINE — " +
-                    WEMOS;
-
-            }
-
-            else {
-
-                status.innerHTML =
-                    "🟡 WEMOS HTTP " +
-                    response.status;
-
-            }
-
-        }
-    )
-
-    .catch(
-        function(error) {
-
-            status.innerHTML =
-                "🔴 WEMOS OFFLINE — " +
-                WEMOS;
-
-            console.log(error);
-
-        }
-    );
-
-}
-
-
-checkWemos();
-
-
-setInterval(
-    checkWemos,
-    3000
-);
-
-
-</script>
-
-</body>
-
-</html>
-"""
-
-
-status_html = status_html.replace(
-    "__WEMOS_IP__",
-    WEMOS_IP
-)
-
-
-st.iframe(
-    status_html,
-    height=65
 )
 
 
@@ -240,45 +83,27 @@ content="width=device-width, initial-scale=1">
 <style>
 
 body {
-
-    margin: 0;
-
-    background: #080b10;
-
-    color: white;
-
-    font-family: Arial;
-
-    text-align: center;
-
+    margin:0;
+    background:#080b10;
+    color:white;
+    font-family:Arial;
+    text-align:center;
 }
 
 video {
-
-    width: 100%;
-
-    max-width: 650px;
-
-    border-radius: 15px;
-
-    background: black;
-
+    width:100%;
+    max-width:650px;
+    border-radius:15px;
+    background:black;
 }
 
 button {
-
-    padding: 14px 22px;
-
-    margin: 10px;
-
-    border: none;
-
-    border-radius: 12px;
-
-    font-size: 17px;
-
-    font-weight: bold;
-
+    padding:14px 22px;
+    margin:10px;
+    border:none;
+    border-radius:12px;
+    font-size:17px;
+    font-weight:bold;
 }
 
 </style>
@@ -287,26 +112,19 @@ button {
 
 <body>
 
-
 <video
 id="camera"
 autoplay
 playsinline>
 </video>
 
-
 <br>
 
-
 <button onclick="startCamera()">
-
 📹 START REAR CAMERA
-
 </button>
 
-
 <script>
-
 
 async function startCamera() {
 
@@ -318,14 +136,12 @@ async function startCamera() {
             .getUserMedia({
 
                 video: {
-
                     facingMode: {
                         ideal: "environment"
                     }
-
                 },
 
-                audio: false
+                audio:false
 
             });
 
@@ -347,7 +163,6 @@ async function startCamera() {
 
 }
 
-
 </script>
 
 </body>
@@ -366,7 +181,7 @@ st.iframe(
 # SPEED
 # ============================================================
 
-st.subheader("🎚️ MOTOR SPEED")
+st.subheader("🎚️ MASTER SPEED")
 
 
 speed = st.slider(
@@ -379,19 +194,21 @@ speed = st.slider(
 
 
 st.markdown(
-    f"<h2>{speed}%</h2>",
+    f"""
+    <h2>{speed}%</h2>
+    """,
     unsafe_allow_html=True
 )
 
 
 # ============================================================
-# JOYSTICK
+# DRONE CONTROLLER
 # ============================================================
 
-st.subheader("🕹️ THRUSTER CONTROL")
+st.subheader("🎮 DRONE-STYLE CONTROL")
 
 
-joystick_html = """
+controller_html = """
 <!DOCTYPE html>
 
 <html>
@@ -404,84 +221,219 @@ content="width=device-width, initial-scale=1">
 
 <style>
 
+html,
 body {
 
-    margin: 0;
+    margin:0;
 
-    background: transparent;
+    padding:0;
 
-    display: flex;
+    background:#080b10;
 
-    justify-content: center;
+    color:white;
 
-    align-items: center;
+    font-family:Arial;
 
-    height: 350px;
+    touch-action:none;
 
-    touch-action: none;
-
-    user-select: none;
+    user-select:none;
 
 }
 
 
-#base {
+/* ==========================================================
+   CONTROLLER
+   ========================================================== */
 
-    width: 250px;
+#controller {
 
-    height: 250px;
+    width:100%;
 
-    border-radius: 50%;
+    height:520px;
 
-    background: #202833;
+    display:flex;
 
-    border: 4px solid #3b4654;
+    justify-content:space-around;
 
-    position: relative;
+    align-items:center;
 
-    touch-action: none;
+    touch-action:none;
 
 }
 
 
-#stick {
+/* ==========================================================
+   STICK AREA
+   ========================================================== */
 
-    width: 80px;
+.stickArea {
 
-    height: 80px;
+    width:260px;
 
-    border-radius: 50%;
+    height:330px;
 
-    background: #4b83ff;
+    display:flex;
 
-    position: absolute;
+    justify-content:center;
 
-    left: 85px;
+    align-items:center;
 
-    top: 85px;
+    position:relative;
+
+}
+
+
+/* ==========================================================
+   BASE
+   ========================================================== */
+
+.base {
+
+    width:210px;
+
+    height:210px;
+
+    border-radius:50%;
+
+    background:#202833;
+
+    border:5px solid #3b4654;
+
+    position:relative;
+
+    touch-action:none;
+
+}
+
+
+/* ==========================================================
+   STICK
+   ========================================================== */
+
+.stick {
+
+    width:78px;
+
+    height:78px;
+
+    border-radius:50%;
+
+    background:#4b83ff;
+
+    position:absolute;
+
+    left:66px;
+
+    top:66px;
 
     box-shadow:
-        0 0 20px
-        rgba(75,131,255,0.5);
+        0 0 25px
+        rgba(75,131,255,0.55);
+
+    pointer-events:none;
 
 }
 
 
-#label {
+/* ==========================================================
+   LABEL
+   ========================================================== */
 
-    position: absolute;
+.label {
 
-    width: 100%;
+    position:absolute;
 
-    top: 265px;
+    bottom:10px;
 
-    text-align: center;
+    width:100%;
 
-    color: #aaa;
+    text-align:center;
 
-    font-family: Arial;
+    color:#aaa;
 
-    font-size: 14px;
+    font-size:16px;
+
+    font-weight:bold;
+
+}
+
+
+/* ==========================================================
+   DIRECTION LABELS
+   ========================================================== */
+
+.direction {
+
+    position:absolute;
+
+    color:#777;
+
+    font-size:20px;
+
+    font-weight:bold;
+
+    pointer-events:none;
+
+}
+
+.up {
+
+    top:10px;
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+}
+
+.down {
+
+    bottom:10px;
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+}
+
+.left {
+
+    left:10px;
+
+    top:50%;
+
+    transform:translateY(-50%);
+
+}
+
+.right {
+
+    right:10px;
+
+    top:50%;
+
+    transform:translateY(-50%);
+
+}
+
+
+/* ==========================================================
+   STATUS
+   ========================================================== */
+
+#status {
+
+    position:absolute;
+
+    top:15px;
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+    color:#00ff66;
+
+    font-weight:bold;
 
 }
 
@@ -493,13 +445,83 @@ body {
 <body>
 
 
-<div id="base">
+<div id="status">
 
-    <div id="stick"></div>
+🟢 READY
 
-    <div id="label">
-        PUSH TO CONTROL
+</div>
+
+
+<div id="controller">
+
+
+<!-- ========================================================
+     LEFT STICK
+     THROTTLE
+     ======================================================== -->
+
+<div class="stickArea">
+
+    <div
+        class="base"
+        id="throttleBase"
+    >
+
+        <div class="direction up">
+            ▲
+        </div>
+
+        <div class="direction down">
+            ▼
+        </div>
+
+        <div
+            class="stick"
+            id="throttleStick"
+        ></div>
+
     </div>
+
+    <div class="label">
+        THROTTLE
+    </div>
+
+</div>
+
+
+<!-- ========================================================
+     RIGHT STICK
+     STEERING
+     ======================================================== -->
+
+<div class="stickArea">
+
+    <div
+        class="base"
+        id="steeringBase"
+    >
+
+        <div class="direction left">
+            ◀
+        </div>
+
+        <div class="direction right">
+            ▶
+        </div>
+
+        <div
+            class="stick"
+            id="steeringStick"
+        ></div>
+
+    </div>
+
+    <div class="label">
+        STEERING
+    </div>
+
+</div>
+
 
 </div>
 
@@ -519,335 +541,176 @@ const SPEED =
     __SPEED__;
 
 
-const base =
+// ============================================================
+// ELEMENTS
+// ============================================================
+
+const throttleBase =
     document.getElementById(
-        "base"
+        "throttleBase"
     );
 
 
-const stick =
+const throttleStick =
     document.getElementById(
-        "stick"
+        "throttleStick"
     );
 
 
-const CENTER =
-    125;
+const steeringBase =
+    document.getElementById(
+        "steeringBase"
+    );
 
 
-const MAX_DISTANCE =
-    85;
+const steeringStick =
+    document.getElementById(
+        "steeringStick"
+    );
 
 
-const SEND_INTERVAL =
-    100;
+const status =
+    document.getElementById(
+        "status"
+    );
 
 
-let active =
+// ============================================================
+// VALUES
+// ============================================================
+
+let throttle =
+    0;
+
+
+let steering =
+    0;
+
+
+let throttleActive =
     false;
 
 
-let lastLeft =
-    0;
-
-
-let lastRight =
-    0;
-
-
-let sendTimer =
-    null;
+let steeringActive =
+    false;
 
 
 // ============================================================
-// SEND
+// STICK GEOMETRY
 // ============================================================
 
-function sendMotors(
-    left,
-    right
-) {
-
-    lastLeft =
-        Math.round(left);
+const CENTER =
+    105;
 
 
-    lastRight =
-        Math.round(right);
-
-
-    const url =
-        "http://" +
-        WEMOS +
-        "/motors?left=" +
-        lastLeft +
-        "&right=" +
-        lastRight;
-
-
-    fetch(
-        url,
-        {
-            method: "GET",
-            cache: "no-store"
-        }
-    )
-
-    .catch(
-        function(error) {
-
-            console.log(
-                "Motor error:",
-                error
-            );
-
-        }
-    );
-
-}
+const MAX =
+    65;
 
 
 // ============================================================
-// CONTINUOUS SEND
+// MOTOR OUTPUT
 // ============================================================
 
-function startSending() {
-
-    if (
-        sendTimer !== null
-    ) {
-
-        return;
-
-    }
-
-
-    sendTimer =
-        setInterval(
-            function() {
-
-                if (active) {
-
-                    sendMotors(
-                        lastLeft,
-                        lastRight
-                    );
-
-                }
-
-            },
-            SEND_INTERVAL
-        );
-
-}
-
-
-function stopSending() {
-
-    if (
-        sendTimer !== null
-    ) {
-
-        clearInterval(
-            sendTimer
-        );
-
-        sendTimer =
-            null;
-
-    }
-
-}
-
-
-// ============================================================
-// STOP
-// ============================================================
-
-function stopMotors() {
-
-    lastLeft = 0;
-    lastRight = 0;
-
-
-    fetch(
-        "http://" +
-        WEMOS +
-        "/stop",
-        {
-            method: "GET",
-            cache: "no-store"
-        }
-    )
-
-    .catch(
-        function(error) {
-
-            console.log(
-                "Stop error:",
-                error
-            );
-
-        }
-    );
-
-}
-
-
-// ============================================================
-// JOYSTICK
-// ============================================================
-
-function control(
-    x,
-    y
-) {
-
-    const distance =
-        Math.sqrt(
-            x * x +
-            y * y
-        );
-
-
-    // Keep stick inside circle
-
-    if (
-        distance >
-        MAX_DISTANCE
-    ) {
-
-        x =
-            x /
-            distance *
-            MAX_DISTANCE;
-
-
-        y =
-            y /
-            distance *
-            MAX_DISTANCE;
-
-    }
-
-
-    // Visual stick
-
-    stick.style.left =
-        (
-            CENTER +
-            x -
-            40
-        ) +
-        "px";
-
-
-    stick.style.top =
-        (
-            CENTER +
-            y -
-            40
-        ) +
-        "px";
+function updateMotors() {
 
 
     // ========================================================
     // THROTTLE
     // ========================================================
 
-    let throttle =
-        -y /
-        MAX_DISTANCE;
+    let baseThrottle =
+        throttle;
 
 
     // ========================================================
     // STEERING
+    //
+    // Steering strength depends on the steering stick.
     // ========================================================
 
-    let steering =
-        x /
-        MAX_DISTANCE;
+    let steer =
+        steering;
 
 
     // ========================================================
-    // DEADZONE
+    // MIXING
+    //
+    // Normal forward steering:
+    //
+    // throttle + left
+    //     left motor slower
+    //
+    // throttle + right
+    //     right motor slower
+    //
     // ========================================================
 
-    const DEADZONE =
-        0.08;
+    let left;
+    let right;
 
 
     if (
-        Math.abs(throttle) <
-        DEADZONE
+        Math.abs(baseThrottle) < 0.03
     ) {
 
-        throttle = 0;
+        // ----------------------------------------------------
+        // STATIONARY TURN
+        //
+        // Allow controlled pivoting when throttle is centered.
+        // ----------------------------------------------------
+
+        left =
+            steer * 0.45;
+
+        right =
+            -steer * 0.45;
+
+    }
+
+    else {
+
+        // ----------------------------------------------------
+        // MOVING TURN
+        // ----------------------------------------------------
+
+        left =
+            baseThrottle -
+            (
+                steer *
+                Math.abs(baseThrottle)
+            );
+
+
+        right =
+            baseThrottle +
+            (
+                steer *
+                Math.abs(baseThrottle)
+            );
 
     }
 
 
-    if (
-        Math.abs(steering) <
-        DEADZONE
-    ) {
-
-        steering = 0;
-
-    }
-
-
     // ========================================================
-    // SMOOTH STEERING
-    //
-    // THIS IS THE IMPORTANT CHANGE.
-    //
-    // The motors do NOT immediately reverse against each other
-    // when steering.
-    //
-    // Forward + LEFT:
-    //     left  slows
-    //     right stays faster
-    //
-    // Forward + RIGHT:
-    //     right slows
-    //     left stays faster
-    //
-    // This feels much more like normal steering.
+    // NORMALIZE
     // ========================================================
 
-    let left =
-        throttle *
-        (1 - steering);
+    const maximum =
+        Math.max(
+            1,
+            Math.abs(left),
+            Math.abs(right)
+        );
 
-
-    let right =
-        throttle *
-        (1 + steering);
-
-
-    // ========================================================
-    // LIMIT
-    // ========================================================
 
     left =
-        Math.max(
-            -1,
-            Math.min(
-                1,
-                left
-            )
-        );
+        left /
+        maximum;
 
 
     right =
-        Math.max(
-            -1,
-            Math.min(
-                1,
-                right
-            )
-        );
+        right /
+        maximum;
 
 
     // ========================================================
@@ -865,18 +728,8 @@ function control(
 
 
     // ========================================================
-    // SAVE
+    // SEND
     // ========================================================
-
-    lastLeft =
-        left;
-
-
-    lastRight =
-        right;
-
-
-    // Send immediately
 
     sendMotors(
         left,
@@ -887,137 +740,460 @@ function control(
 
 
 // ============================================================
-// RELEASE
+// SEND TO WEMOS
 // ============================================================
 
-function release() {
-
-    active =
-        false;
+let lastSent =
+    "";
 
 
-    stopSending();
+function sendMotors(
+    left,
+    right
+) {
 
 
-    stick.style.left =
-        "85px";
+    const leftValue =
+        Math.round(left);
 
 
-    stick.style.top =
-        "85px";
+    const rightValue =
+        Math.round(right);
 
 
-    stopMotors();
+    const command =
+        leftValue +
+        "," +
+        rightValue;
+
+
+    // Avoid duplicate requests
+
+    if (
+        command === lastSent
+    ) {
+
+        return;
+
+    }
+
+
+    lastSent =
+        command;
+
+
+    const url =
+        "http://" +
+        WEMOS +
+        "/motors?left=" +
+        leftValue +
+        "&right=" +
+        rightValue;
+
+
+    fetch(
+        url,
+        {
+            method:"GET",
+            cache:"no-store"
+        }
+    )
+
+    .then(
+        function(response) {
+
+            if (
+                response.ok
+            ) {
+
+                status.innerText =
+                    "🟢 L:" +
+                    leftValue +
+                    "%  R:" +
+                    rightValue +
+                    "%";
+
+            }
+
+        }
+    )
+
+    .catch(
+        function(error) {
+
+            status.innerText =
+                "🔴 WEMOS CONNECTION ERROR";
+
+            console.log(error);
+
+        }
+    );
 
 }
 
 
 // ============================================================
-// POINTER DOWN
+// STOP
 // ============================================================
 
-base.addEventListener(
-    "pointerdown",
+function stopMotors() {
 
+    throttle = 0;
+    steering = 0;
+
+
+    lastSent = "";
+
+
+    fetch(
+        "http://" +
+        WEMOS +
+        "/stop",
+        {
+            method:"GET",
+            cache:"no-store"
+        }
+    )
+
+    .catch(
+        function(error) {
+
+            console.log(error);
+
+        }
+    );
+
+
+    status.innerText =
+        "🛑 STOPPED";
+
+}
+
+
+// ============================================================
+// RESET STICK
+// ============================================================
+
+function resetStick(
+    stick
+) {
+
+    stick.style.left =
+        "66px";
+
+    stick.style.top =
+        "66px";
+
+}
+
+
+// ============================================================
+// THROTTLE STICK
+// ============================================================
+
+function throttleControl(
+    event
+) {
+
+    const rect =
+        throttleBase
+        .getBoundingClientRect();
+
+
+    let x =
+        event.clientX -
+        rect.left -
+        CENTER;
+
+
+    let y =
+        event.clientY -
+        rect.top -
+        CENTER;
+
+
+    // Only vertical movement matters
+
+    y =
+        Math.max(
+            -MAX,
+            Math.min(
+                MAX,
+                y
+            )
+        );
+
+
+    throttle =
+        -y /
+        MAX;
+
+
+    // Visual movement
+
+    throttleStick.style.left =
+        "66px";
+
+
+    throttleStick.style.top =
+        (
+            CENTER +
+            y -
+            39
+        ) +
+        "px";
+
+
+    updateMotors();
+
+}
+
+
+// ============================================================
+// STEERING STICK
+// ============================================================
+
+function steeringControl(
+    event
+) {
+
+    const rect =
+        steeringBase
+        .getBoundingClientRect();
+
+
+    let x =
+        event.clientX -
+        rect.left -
+        CENTER;
+
+
+    let y =
+        event.clientY -
+        rect.top -
+        CENTER;
+
+
+    // Only horizontal movement matters
+
+    x =
+        Math.max(
+            -MAX,
+            Math.min(
+                MAX,
+                x
+            )
+        );
+
+
+    steering =
+        x /
+        MAX;
+
+
+    // Visual movement
+
+    steeringStick.style.left =
+        (
+            CENTER +
+            x -
+            39
+        ) +
+        "px";
+
+
+    steeringStick.style.top =
+        "66px";
+
+
+    updateMotors();
+
+}
+
+
+// ============================================================
+// THROTTLE EVENTS
+// ============================================================
+
+throttleBase.addEventListener(
+    "pointerdown",
     function(event) {
 
-        active =
+        throttleActive =
             true;
 
-
-        base.setPointerCapture(
+        throttleBase.setPointerCapture(
             event.pointerId
         );
 
-
-        const rect =
-            base.getBoundingClientRect();
-
-
-        control(
-
-            event.clientX -
-            rect.left -
-            CENTER,
-
-            event.clientY -
-            rect.top -
-            CENTER
-
-        );
-
-
-        startSending();
+        throttleControl(event);
 
     }
-
 );
 
 
-// ============================================================
-// POINTER MOVE
-// ============================================================
-
-base.addEventListener(
+throttleBase.addEventListener(
     "pointermove",
-
     function(event) {
 
-        if (!active) {
+        if (
+            throttleActive
+        ) {
 
-            return;
+            throttleControl(event);
 
         }
 
+    }
+);
 
-        const rect =
-            base.getBoundingClientRect();
 
+throttleBase.addEventListener(
+    "pointerup",
+    function() {
 
-        control(
+        throttleActive =
+            false;
 
-            event.clientX -
-            rect.left -
-            CENTER,
+        throttle =
+            0;
 
-            event.clientY -
-            rect.top -
-            CENTER
-
+        resetStick(
+            throttleStick
         );
 
+        updateMotors();
+
     }
-
 );
 
 
-// ============================================================
-// RELEASE
-// ============================================================
-
-base.addEventListener(
-    "pointerup",
-    release
-);
-
-
-base.addEventListener(
+throttleBase.addEventListener(
     "pointercancel",
-    release
+    function() {
+
+        throttleActive =
+            false;
+
+        throttle =
+            0;
+
+        resetStick(
+            throttleStick
+        );
+
+        updateMotors();
+
+    }
 );
 
 
-// Extra safety
+// ============================================================
+// STEERING EVENTS
+// ============================================================
+
+steeringBase.addEventListener(
+    "pointerdown",
+    function(event) {
+
+        steeringActive =
+            true;
+
+        steeringBase.setPointerCapture(
+            event.pointerId
+        );
+
+        steeringControl(event);
+
+    }
+);
+
+
+steeringBase.addEventListener(
+    "pointermove",
+    function(event) {
+
+        if (
+            steeringActive
+        ) {
+
+            steeringControl(event);
+
+        }
+
+    }
+);
+
+
+steeringBase.addEventListener(
+    "pointerup",
+    function() {
+
+        steeringActive =
+            false;
+
+        steering =
+            0;
+
+        resetStick(
+            steeringStick
+        );
+
+        updateMotors();
+
+    }
+);
+
+
+steeringBase.addEventListener(
+    "pointercancel",
+    function() {
+
+        steeringActive =
+            false;
+
+        steering =
+            0;
+
+        resetStick(
+            steeringStick
+        );
+
+        updateMotors();
+
+    }
+);
+
+
+// ============================================================
+// SAFETY
+// ============================================================
 
 window.addEventListener(
     "blur",
     function() {
 
-        if (active) {
+        throttle =
+            0;
 
-            release();
+        steering =
+            0;
 
-        }
+        throttleActive =
+            false;
+
+        steeringActive =
+            false;
+
+        resetStick(
+            throttleStick
+        );
+
+        resetStick(
+            steeringStick
+        );
+
+        stopMotors();
 
     }
 );
@@ -1025,28 +1201,27 @@ window.addEventListener(
 
 </script>
 
-
 </body>
 
 </html>
 """
 
 
-joystick_html = joystick_html.replace(
+controller_html = controller_html.replace(
     "__WEMOS_IP__",
     WEMOS_IP
 )
 
 
-joystick_html = joystick_html.replace(
+controller_html = controller_html.replace(
     "__SPEED__",
     str(speed)
 )
 
 
 st.iframe(
-    joystick_html,
-    height=370
+    controller_html,
+    height=540
 )
 
 
@@ -1069,32 +1244,27 @@ stop_html = """
 <style>
 
 body {
-
-    margin: 0;
-
-    font-family: Arial;
-
-    text-align: center;
-
+    margin:0;
+    background:transparent;
 }
 
 button {
 
-    width: 100%;
+    width:100%;
 
-    padding: 18px;
+    padding:18px;
 
-    border: none;
+    border:none;
 
-    border-radius: 14px;
+    border-radius:14px;
 
-    background: #d71920;
+    background:#d71920;
 
-    color: white;
+    color:white;
 
-    font-size: 22px;
+    font-size:22px;
 
-    font-weight: bold;
+    font-weight:bold;
 
 }
 
@@ -1102,11 +1272,10 @@ button {
 
 </head>
 
-
 <body>
 
 
-<button onclick="emergencyStop()">
+<button onclick="stop()">
 
 🛑 EMERGENCY STOP
 
@@ -1115,17 +1284,20 @@ button {
 
 <script>
 
-
 const WEMOS =
     "__WEMOS_IP__";
 
 
-function emergencyStop() {
+function stop() {
 
     fetch(
         "http://" +
         WEMOS +
-        "/stop"
+        "/stop",
+        {
+            method:"GET",
+            cache:"no-store"
+        }
     )
 
     .then(
@@ -1145,15 +1317,12 @@ function emergencyStop() {
                 "❌ WEMOS NOT REACHABLE"
             );
 
-            console.log(
-                error
-            );
+            console.log(error);
 
         }
     );
 
 }
-
 
 </script>
 
@@ -1188,7 +1357,7 @@ st.code(
 WEMOS IP
 {WEMOS_IP}
 
-Motor endpoint
+Control endpoint
 http://{WEMOS_IP}/motors
 
 Stop endpoint
@@ -1199,5 +1368,5 @@ http://{WEMOS_IP}/stop
 
 
 st.caption(
-    "SUBMARINE V2 • PROTOTYPE 2"
+    "SUBMARINE V2 • PROTOTYPE 2 • DRONE CONTROL"
 )
