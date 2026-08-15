@@ -11,7 +11,7 @@ WEMOS_URL = f"http://{WEMOS_IP}"
 
 
 # ============================================================
-# PAGE
+# PAGE CONFIG
 # ============================================================
 
 st.set_page_config(
@@ -41,6 +41,10 @@ h2 {
     text-align: center;
 }
 
+h3 {
+    text-align: center;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -52,9 +56,11 @@ h2 {
 st.title("⚓ SUBMARINE V2")
 
 st.markdown(
-    "<h3 style='text-align:center;'>"
-    "🟢 PROTOTYPE 2 CONTROL SYSTEM"
-    "</h3>",
+    """
+    <h3>
+    🟢 PROTOTYPE 2 CONTROL SYSTEM
+    </h3>
+    """,
     unsafe_allow_html=True
 )
 
@@ -79,7 +85,8 @@ try:
     else:
 
         st.warning(
-            f"🟡 WEMOS RESPONDED — HTTP {response.status_code}"
+            f"🟡 WEMOS RESPONDED — "
+            f"HTTP {response.status_code}"
         )
 
 except requests.RequestException:
@@ -90,10 +97,13 @@ except requests.RequestException:
 
 
 # ============================================================
-# CAMERA
+# REAR CAMERA
 # ============================================================
 
-st.subheader("📹 REAR CAMERA")
+st.subheader(
+    "📹 REAR CAMERA"
+)
+
 
 camera_html = """
 <!DOCTYPE html>
@@ -113,6 +123,8 @@ body {
     margin: 0;
 
     background: #080b10;
+
+    color: white;
 
     text-align: center;
 
@@ -144,14 +156,11 @@ button {
 
     font-size: 17px;
 
-    cursor: pointer;
-
 }
 
 </style>
 
 </head>
-
 
 <body>
 
@@ -200,7 +209,6 @@ async function startCamera() {
             "camera"
         ).srcObject = stream;
 
-
     }
 
     catch(error) {
@@ -233,7 +241,10 @@ st.iframe(
 # SPEED
 # ============================================================
 
-st.subheader("🎚️ MOTOR SPEED")
+st.subheader(
+    "🎚️ MOTOR SPEED"
+)
+
 
 speed = st.slider(
     "Maximum motor speed",
@@ -245,7 +256,11 @@ speed = st.slider(
 
 
 st.markdown(
-    f"<h2>{speed}%</h2>",
+    f"""
+    <h2>
+    {speed}%
+    </h2>
+    """,
     unsafe_allow_html=True
 )
 
@@ -254,7 +269,9 @@ st.markdown(
 # JOYSTICK
 # ============================================================
 
-st.subheader("🕹️ THRUSTER CONTROL")
+st.subheader(
+    "🕹️ THRUSTER CONTROL"
+)
 
 
 joystick_html = f"""
@@ -358,6 +375,7 @@ body {{
 const WEMOS =
     "{WEMOS_IP}";
 
+
 const SPEED =
     {speed};
 
@@ -378,7 +396,26 @@ const CENTER = 125;
 
 const MAX_DISTANCE = 85;
 
+
+// IMPORTANT:
+//
+// Commands are resent every 100 ms
+// while the joystick is held.
+//
+// This prevents the Wemos
+// safety timer from stopping
+// a stationary joystick.
+
+const SEND_INTERVAL = 100;
+
+
 let active = false;
+
+let lastLeft = 0;
+
+let lastRight = 0;
+
+let sendTimer = null;
 
 
 // ============================================================
@@ -424,16 +461,75 @@ function sendMotors(left, right) {{
 
 
 // ============================================================
-// STOP
+// REPEATED COMMAND SENDER
+// ============================================================
+
+function startSending() {{
+
+    if (sendTimer !== null) {{
+
+        return;
+
+    }}
+
+
+    sendTimer =
+        setInterval(
+            function() {{
+
+                if (active) {{
+
+                    sendMotors(
+                        lastLeft,
+                        lastRight
+                    );
+
+                }
+
+            }},
+            SEND_INTERVAL
+        );
+
+}}
+
+
+// ============================================================
+// STOP REPEATED SENDING
+// ============================================================
+
+function stopSending() {{
+
+    if (sendTimer !== null) {{
+
+        clearInterval(
+            sendTimer
+        );
+
+        sendTimer = null;
+
+    }}
+
+}}
+
+
+// ============================================================
+// STOP MOTORS
 // ============================================================
 
 function stopMotors() {{
+
+    lastLeft = 0;
+
+    lastRight = 0;
+
 
     fetch(
         "http://" +
         WEMOS +
         "/stop"
-    ).catch(function(error) {{
+    )
+
+    .catch(function(error) {{
 
         console.log(
             "Stop error:",
@@ -446,7 +542,7 @@ function stopMotors() {{
 
 
 // ============================================================
-// JOYSTICK
+// JOYSTICK CONTROL
 // ============================================================
 
 function control(x, y) {{
@@ -458,6 +554,8 @@ function control(x, y) {{
         );
 
 
+    // Keep joystick inside circle
+
     if (
         distance >
         MAX_DISTANCE
@@ -467,6 +565,7 @@ function control(x, y) {{
             x /
             distance *
             MAX_DISTANCE;
+
 
         y =
             y /
@@ -567,8 +666,15 @@ function control(x, y) {{
 
 
     // ========================================================
-    // SEND
+    // SAVE CURRENT COMMAND
     // ========================================================
+
+    lastLeft = left;
+
+    lastRight = right;
+
+
+    // Send immediately
 
     sendMotors(
         left,
@@ -585,6 +691,9 @@ function control(x, y) {{
 function release() {{
 
     active = false;
+
+
+    stopSending();
 
 
     stick.style.left =
@@ -633,6 +742,9 @@ base.addEventListener(
 
         );
 
+
+        startSending();
+
     }}
 
 );
@@ -647,11 +759,11 @@ base.addEventListener(
 
     function(event) {{
 
-        if (!active) {
+        if (!active) {{
 
             return;
 
-        }
+        }}
 
 
         const rect =
@@ -707,6 +819,26 @@ base.addEventListener(
 );
 
 
+// ============================================================
+// EXTRA SAFETY
+// ============================================================
+
+window.addEventListener(
+    "blur",
+
+    function() {{
+
+        if (active) {{
+
+            release();
+
+        }}
+
+    }}
+
+);
+
+
 </script>
 
 
@@ -741,6 +873,7 @@ if st.button(
             timeout=1
         )
 
+
         st.success(
             "🛑 THRUSTERS STOPPED"
         )
@@ -774,6 +907,7 @@ if st.button(
             st.success(
                 "🟢 WEMOS ONLINE!"
             )
+
 
             st.code(
                 response.text
